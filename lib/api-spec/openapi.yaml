@@ -1,22 +1,41 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Trade Analysis Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: dashboard
+    description: Dashboard analytics
+  - name: scanner
+    description: AI Market Scanner
+  - name: watchlist
+    description: Watchlist management
+  - name: portfolio
+    description: Portfolio management
+  - name: trades
+    description: Trade management
+  - name: news
+    description: News and sentiment
+  - name: signals
+    description: AI Trade Signals
+  - name: chat
+    description: AI Chat Assistant
+  - name: notifications
+    description: Notifications
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +43,1135 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/portfolio-chart:
+    get:
+      operationId: getPortfolioChart
+      tags: [dashboard]
+      summary: Get portfolio performance chart data
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1D, 1W, 1M, 3M, 1Y]
+            default: 1M
+      responses:
+        "200":
+          description: Chart data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChartPoint"
+
+  /dashboard/market-heatmap:
+    get:
+      operationId: getMarketHeatmap
+      tags: [dashboard]
+      summary: Get market sector heatmap data
+      responses:
+        "200":
+          description: Heatmap data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HeatmapItem"
+
+  /dashboard/top-movers:
+    get:
+      operationId: getTopMovers
+      tags: [dashboard]
+      summary: Get top gainers and losers
+      responses:
+        "200":
+          description: Top movers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopMovers"
+
+  /scanner/signals:
+    get:
+      operationId: getScannerSignals
+      tags: [scanner]
+      summary: Get AI scanner signals
+      parameters:
+        - name: market
+          in: query
+          schema:
+            type: string
+            enum: [ALL, NASDAQ, NYSE, BIST, CRYPTO, FOREX]
+            default: ALL
+        - name: signal
+          in: query
+          schema:
+            type: string
+            enum: [ALL, STRONG_BUY, BUY, HOLD, SELL, RISKY]
+            default: ALL
+        - name: minScore
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Scanner signals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AiSignal"
+
+  /scanner/signals/{symbolId}:
+    get:
+      operationId: getSignalDetail
+      tags: [scanner]
+      summary: Get detailed signal for a symbol
+      parameters:
+        - name: symbolId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Signal detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSignalDetail"
+
+  /scanner/analyze:
+    post:
+      operationId: analyzeSymbol
+      tags: [scanner]
+      summary: Trigger AI analysis for a symbol
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeInput"
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSignalDetail"
+
+  /watchlist:
+    get:
+      operationId: getWatchlist
+      tags: [watchlist]
+      summary: Get user watchlist
+      responses:
+        "200":
+          description: Watchlist items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WatchlistItem"
+    post:
+      operationId: addToWatchlist
+      tags: [watchlist]
+      summary: Add symbol to watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistInput"
+      responses:
+        "201":
+          description: Added to watchlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistItem"
+
+  /watchlist/{id}:
+    delete:
+      operationId: removeFromWatchlist
+      tags: [watchlist]
+      summary: Remove from watchlist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /portfolio:
+    get:
+      operationId: getPortfolio
+      tags: [portfolio]
+      summary: Get user portfolio
+      responses:
+        "200":
+          description: Portfolio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portfolio"
+
+  /portfolio/positions:
+    get:
+      operationId: getPositions
+      tags: [portfolio]
+      summary: Get open positions
+      responses:
+        "200":
+          description: Positions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Position"
+
+  /portfolio/summary:
+    get:
+      operationId: getPortfolioSummary
+      tags: [portfolio]
+      summary: Get portfolio P&L summary
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioSummary"
+
+  /trades:
+    get:
+      operationId: getTrades
+      tags: [trades]
+      summary: Get trade history
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ALL, OPEN, CLOSED, PAPER]
+            default: ALL
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Trades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trade"
+    post:
+      operationId: createTrade
+      tags: [trades]
+      summary: Create/execute a trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradeInput"
+      responses:
+        "201":
+          description: Trade created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+
+  /trades/{id}:
+    get:
+      operationId: getTrade
+      tags: [trades]
+      summary: Get trade by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trade
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+    patch:
+      operationId: updateTrade
+      tags: [trades]
+      summary: Update trade (close, modify)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradeUpdate"
+      responses:
+        "200":
+          description: Updated trade
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+
+  /news:
+    get:
+      operationId: getNews
+      tags: [news]
+      summary: Get AI-analyzed financial news
+      parameters:
+        - name: symbol
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: sentiment
+          in: query
+          schema:
+            type: string
+            enum: [ALL, POSITIVE, NEGATIVE, NEUTRAL]
+            default: ALL
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: News articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NewsArticle"
+
+  /news/{id}/analyze:
+    post:
+      operationId: analyzeNews
+      tags: [news]
+      summary: AI analyze a specific news article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewsAnalysis"
+
+  /news/sentiment-summary:
+    get:
+      operationId: getSentimentSummary
+      tags: [news]
+      summary: Get overall market sentiment summary
+      responses:
+        "200":
+          description: Sentiment summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SentimentSummary"
+
+  /chat/messages:
+    get:
+      operationId: getChatHistory
+      tags: [chat]
+      summary: Get chat history
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send message to AI assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatMessage"
+
+  /chat/clear:
+    post:
+      operationId: clearChat
+      tags: [chat]
+      summary: Clear chat history
+      responses:
+        "200":
+          description: Cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get user notifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    RegisterInput:
+      type: object
+      required: [email, password, name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    User:
+      type: object
+      required: [id, email, name, createdAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+        paperBalance:
+          type: number
+        createdAt:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+
+    DashboardStats:
+      type: object
+      required: [totalPortfolioValue, dailyPnl, dailyPnlPercent, totalPnl, totalPnlPercent, activeSignals, winRate, paperBalance]
+      properties:
+        totalPortfolioValue:
+          type: number
+        dailyPnl:
+          type: number
+        dailyPnlPercent:
+          type: number
+        totalPnl:
+          type: number
+        totalPnlPercent:
+          type: number
+        activeSignals:
+          type: integer
+        winRate:
+          type: number
+        paperBalance:
+          type: number
+        openPositions:
+          type: integer
+        totalTrades:
+          type: integer
+
+    ChartPoint:
+      type: object
+      required: [date, value]
+      properties:
+        date:
+          type: string
+        value:
+          type: number
+        change:
+          type: number
+
+    HeatmapItem:
+      type: object
+      required: [sector, symbol, change, value]
+      properties:
+        sector:
+          type: string
+        symbol:
+          type: string
+        name:
+          type: string
+        change:
+          type: number
+        value:
+          type: number
+
+    TopMovers:
+      type: object
+      required: [gainers, losers]
+      properties:
+        gainers:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoverItem"
+        losers:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoverItem"
+
+    MoverItem:
+      type: object
+      required: [symbol, name, price, change, changePercent]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        volume:
+          type: number
+        market:
+          type: string
+
+    AiSignal:
+      type: object
+      required: [id, symbol, name, market, price, change, changePercent, signal, aiScore, technicalScore, sentimentScore, newsScore, riskScore, momentumScore, updatedAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        market:
+          type: string
+        price:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        signal:
+          type: string
+          enum: [STRONG_BUY, BUY, HOLD, SELL, RISKY]
+        aiScore:
+          type: integer
+        technicalScore:
+          type: integer
+        sentimentScore:
+          type: integer
+        newsScore:
+          type: integer
+        riskScore:
+          type: integer
+        momentumScore:
+          type: integer
+        volume:
+          type: number
+        marketCap:
+          type: ["number", "null"]
+        updatedAt:
+          type: string
+
+    AiSignalDetail:
+      type: object
+      required: [id, symbol, name, market, price, change, changePercent, signal, aiScore, technicalScore, sentimentScore, newsScore, riskScore, momentumScore, updatedAt, analysis, tradeSignal, technicalIndicators]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        market:
+          type: string
+        price:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        signal:
+          type: string
+          enum: [STRONG_BUY, BUY, HOLD, SELL, RISKY]
+        aiScore:
+          type: integer
+        technicalScore:
+          type: integer
+        sentimentScore:
+          type: integer
+        newsScore:
+          type: integer
+        riskScore:
+          type: integer
+        momentumScore:
+          type: integer
+        volume:
+          type: number
+        marketCap:
+          type: ["number", "null"]
+        updatedAt:
+          type: string
+        analysis:
+          type: string
+        tradeSignal:
+          $ref: "#/components/schemas/TradeSignalData"
+        technicalIndicators:
+          $ref: "#/components/schemas/TechnicalIndicators"
+
+    TradeSignalData:
+      type: object
+      required: [action, entry, stopLoss, takeProfit, riskReward]
+      properties:
+        action:
+          type: string
+          enum: [BUY, SELL, HOLD]
+        entry:
+          type: number
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        riskReward:
+          type: string
+
+    TechnicalIndicators:
+      type: object
+      properties:
+        rsi:
+          type: number
+        macd:
+          type: number
+        ema20:
+          type: number
+        ema50:
+          type: number
+        sma200:
+          type: number
+        bollingerUpper:
+          type: number
+        bollingerLower:
+          type: number
+        volume24h:
+          type: number
+        support:
+          type: number
+        resistance:
+          type: number
+
+    AnalyzeInput:
+      type: object
+      required: [symbol, market]
+      properties:
+        symbol:
+          type: string
+        market:
+          type: string
+
+    WatchlistItem:
+      type: object
+      required: [id, symbol, name, market, price, change, changePercent, aiScore, signal, addedAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        market:
+          type: string
+        price:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        aiScore:
+          type: integer
+        signal:
+          type: string
+        addedAt:
+          type: string
+        alertPrice:
+          type: ["number", "null"]
+
+    WatchlistInput:
+      type: object
+      required: [symbol, market]
+      properties:
+        symbol:
+          type: string
+        market:
+          type: string
+        alertPrice:
+          type: ["number", "null"]
+
+    Portfolio:
+      type: object
+      required: [id, userId, totalValue, cashBalance, investedAmount, totalPnl, totalPnlPercent, dayPnl, dayPnlPercent]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        totalValue:
+          type: number
+        cashBalance:
+          type: number
+        investedAmount:
+          type: number
+        totalPnl:
+          type: number
+        totalPnlPercent:
+          type: number
+        dayPnl:
+          type: number
+        dayPnlPercent:
+          type: number
+
+    Position:
+      type: object
+      required: [id, symbol, name, market, quantity, avgPrice, currentPrice, totalValue, pnl, pnlPercent, openedAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        market:
+          type: string
+        quantity:
+          type: number
+        avgPrice:
+          type: number
+        currentPrice:
+          type: number
+        totalValue:
+          type: number
+        pnl:
+          type: number
+        pnlPercent:
+          type: number
+        openedAt:
+          type: string
+        isPaper:
+          type: boolean
+
+    PortfolioSummary:
+      type: object
+      required: [totalValue, dayPnl, dayPnlPercent, totalPnl, totalPnlPercent, winRate, totalTrades, bestTrade, worstTrade]
+      properties:
+        totalValue:
+          type: number
+        dayPnl:
+          type: number
+        dayPnlPercent:
+          type: number
+        totalPnl:
+          type: number
+        totalPnlPercent:
+          type: number
+        winRate:
+          type: number
+        totalTrades:
+          type: integer
+        bestTrade:
+          type: number
+        worstTrade:
+          type: number
+
+    Trade:
+      type: object
+      required: [id, symbol, name, market, type, quantity, price, totalValue, status, isPaper, createdAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        market:
+          type: string
+        type:
+          type: string
+          enum: [BUY, SELL]
+        quantity:
+          type: number
+        price:
+          type: number
+        totalValue:
+          type: number
+        stopLoss:
+          type: ["number", "null"]
+        takeProfit:
+          type: ["number", "null"]
+        status:
+          type: string
+          enum: [OPEN, CLOSED, PENDING]
+        isPaper:
+          type: boolean
+        pnl:
+          type: ["number", "null"]
+        pnlPercent:
+          type: ["number", "null"]
+        closedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        aiSignalId:
+          type: ["integer", "null"]
+
+    TradeInput:
+      type: object
+      required: [symbol, market, type, quantity, price, isPaper]
+      properties:
+        symbol:
+          type: string
+        market:
+          type: string
+        type:
+          type: string
+          enum: [BUY, SELL]
+        quantity:
+          type: number
+        price:
+          type: number
+        stopLoss:
+          type: ["number", "null"]
+        takeProfit:
+          type: ["number", "null"]
+        isPaper:
+          type: boolean
+        aiSignalId:
+          type: ["integer", "null"]
+
+    TradeUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [OPEN, CLOSED, PENDING]
+        closePrice:
+          type: number
+        stopLoss:
+          type: ["number", "null"]
+        takeProfit:
+          type: ["number", "null"]
+
+    NewsArticle:
+      type: object
+      required: [id, title, source, url, publishedAt, sentiment, sentimentScore, summary]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        source:
+          type: string
+        url:
+          type: string
+        publishedAt:
+          type: string
+        sentiment:
+          type: string
+          enum: [POSITIVE, NEGATIVE, NEUTRAL]
+        sentimentScore:
+          type: number
+        summary:
+          type: string
+        relatedSymbols:
+          type: array
+          items:
+            type: string
+        imageUrl:
+          type: ["string", "null"]
+
+    NewsAnalysis:
+      type: object
+      required: [articleId, summary, sentiment, sentimentScore, impact, relatedSymbols]
+      properties:
+        articleId:
+          type: integer
+        summary:
+          type: string
+        sentiment:
+          type: string
+        sentimentScore:
+          type: number
+        impact:
+          type: string
+        relatedSymbols:
+          type: array
+          items:
+            type: string
+
+    SentimentSummary:
+      type: object
+      required: [overall, positive, negative, neutral, bullishPercent, bearishPercent]
+      properties:
+        overall:
+          type: string
+          enum: [BULLISH, BEARISH, NEUTRAL]
+        positive:
+          type: integer
+        negative:
+          type: integer
+        neutral:
+          type: integer
+        bullishPercent:
+          type: number
+        bearishPercent:
+          type: number
+        topBullishSymbols:
+          type: array
+          items:
+            type: string
+        topBearishSymbols:
+          type: array
+          items:
+            type: string
+
+    ChatMessage:
+      type: object
+      required: [id, role, content, createdAt]
+      properties:
+        id:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        createdAt:
+          type: string
+
+    ChatInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    Notification:
+      type: object
+      required: [id, type, title, message, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [PRICE_ALERT, BUY_SIGNAL, BREAKOUT, NEWS_ALERT, SYSTEM]
+        title:
+          type: string
+        message:
+          type: string
+        symbol:
+          type: ["string", "null"]
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
