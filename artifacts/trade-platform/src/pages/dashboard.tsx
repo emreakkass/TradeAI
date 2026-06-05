@@ -1,31 +1,30 @@
-import { useGetDashboardStats, useGetPortfolioChart, useGetMarketHeatmap, useGetTopMovers } from "@workspace/api-client-react";
+import { useGetDashboardStats, useGetPortfolioChart, useGetTopMovers } from "@workspace/api-client-react";
 import { Sidebar } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight, Activity, DollarSign, Target, Briefcase } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Treemap } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
   const { data: chartData, isLoading: chartLoading } = useGetPortfolioChart({ period: "1M" });
-  const { data: heatmapData, isLoading: heatmapLoading } = useGetMarketHeatmap();
   const { data: moversData, isLoading: moversLoading } = useGetTopMovers();
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+  const formatCurrency = (val: number) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(val);
   const formatPercent = (val: number) => `${val > 0 ? '+' : ''}${val.toFixed(2)}%`;
 
   return (
     <Sidebar>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Terminal Overview</h1>
-          <p className="text-muted-foreground">Real-time market insights and portfolio performance.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Genel Bakış Paneli</h1>
+          <p className="text-muted-foreground">Gerçek zamanlı piyasa bilgileri ve portföy performansı.</p>
         </div>
 
-        {/* Stats Row */}
+        {/* İstatistik Kartları */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Value</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Değer</CardTitle>
               <DollarSign className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -35,7 +34,9 @@ export default function Dashboard() {
                 <>
                   <div className="text-2xl font-bold">{formatCurrency(stats?.totalPortfolioValue || 0)}</div>
                   <p className={`text-xs mt-1 font-medium ${stats?.totalPnl && stats.totalPnl > 0 ? "text-primary" : "text-destructive"}`}>
-                    {stats?.totalPnl && stats.totalPnl > 0 ? <ArrowUpRight className="inline w-3 h-3 mr-1" /> : <ArrowDownRight className="inline w-3 h-3 mr-1" />}
+                    {stats?.totalPnl && stats.totalPnl > 0
+                      ? <ArrowUpRight className="inline w-3 h-3 mr-1" />
+                      : <ArrowDownRight className="inline w-3 h-3 mr-1" />}
                     {formatCurrency(stats?.totalPnl || 0)} ({formatPercent(stats?.totalPnlPercent || 0)})
                   </p>
                 </>
@@ -45,7 +46,7 @@ export default function Dashboard() {
 
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Daily P&L</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Günlük K/Z</CardTitle>
               <Activity className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -57,7 +58,7 @@ export default function Dashboard() {
                     {formatCurrency(stats?.dailyPnl || 0)}
                   </div>
                   <p className="text-xs mt-1 text-muted-foreground font-medium">
-                    {formatPercent(stats?.dailyPnlPercent || 0)} Today
+                    {formatPercent(stats?.dailyPnlPercent || 0)} Bugün
                   </p>
                 </>
               )}
@@ -66,7 +67,7 @@ export default function Dashboard() {
 
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active Signals</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Aktif Sinyaller</CardTitle>
               <Target className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -75,7 +76,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   <div className="text-2xl font-bold text-accent">{stats?.activeSignals || 0}</div>
-                  <p className="text-xs mt-1 text-muted-foreground">High confidence setups</p>
+                  <p className="text-xs mt-1 text-muted-foreground">Yüksek güven kurulumları</p>
                 </>
               )}
             </CardContent>
@@ -83,7 +84,7 @@ export default function Dashboard() {
 
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Win Rate</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Kazanma Oranı</CardTitle>
               <Briefcase className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -92,7 +93,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   <div className="text-2xl font-bold">{stats?.winRate?.toFixed(1) || 0}%</div>
-                  <p className="text-xs mt-1 text-muted-foreground">Based on closed trades</p>
+                  <p className="text-xs mt-1 text-muted-foreground">Kapalı işlemlere göre</p>
                 </>
               )}
             </CardContent>
@@ -100,11 +101,11 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Chart */}
+          {/* Ana Grafik */}
           <Card className="lg:col-span-2 bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
-              <CardTitle>Portfolio Performance</CardTitle>
-              <CardDescription>Value over the last 30 days</CardDescription>
+              <CardTitle>Portföy Performansı</CardTitle>
+              <CardDescription>Son 30 günlük değer değişimi</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">
@@ -115,48 +116,48 @@ export default function Dashboard() {
                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
+                      <XAxis
+                        dataKey="date"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        tickFormatter={(val) => new Date(val).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' })}
                       />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(val) => `$${val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val}`}
                       />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                         itemStyle={{ color: 'hsl(var(--foreground))' }}
                         labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '4px' }}
-                        formatter={(value: number) => [formatCurrency(value), 'Value']}
-                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                        formatter={(value: number) => [formatCurrency(value), 'Değer']}
+                        labelFormatter={(label) => new Date(label).toLocaleDateString('tr-TR')}
                       />
                       <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No chart data available</div>
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">Grafik verisi bulunamadı</div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Top Movers */}
+          {/* En Çok Hareket Edenler */}
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
-              <CardTitle>Top Movers</CardTitle>
-              <CardDescription>Market volatility scanner</CardDescription>
+              <CardTitle>En Çok Hareket Edenler</CardTitle>
+              <CardDescription>Piyasa volatilite tarayıcısı</CardDescription>
             </CardHeader>
             <CardContent className="px-0">
               {moversLoading ? (

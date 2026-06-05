@@ -1,37 +1,36 @@
 import { Sidebar } from "@/components/layout";
-import { useGetMe, useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 export default function Settings() {
   const { user } = useAuth();
-  
+
   return (
     <Sidebar>
       <div className="flex flex-col gap-6 max-w-4xl">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage your account preferences and trading settings.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Ayarlar</h1>
+          <p className="text-muted-foreground">Hesap tercihlerinizi ve işlem ayarlarınızı yönetin.</p>
         </div>
 
         <div className="grid gap-6">
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
-              <CardTitle>Profile</CardTitle>
-              <CardDescription>Your personal information.</CardDescription>
+              <CardTitle>Profil</CardTitle>
+              <CardDescription>Kişisel bilgileriniz.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Name</Label>
+                  <Label>Ad Soyad</Label>
                   <div className="p-2 bg-muted/50 rounded border border-border/50 text-sm">{user?.name}</div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Email</Label>
+                  <Label>E-posta</Label>
                   <div className="p-2 bg-muted/50 rounded border border-border/50 text-sm">{user?.email}</div>
                 </div>
               </div>
@@ -40,36 +39,36 @@ export default function Settings() {
 
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
-              <CardTitle>Trading Preferences</CardTitle>
-              <CardDescription>Configure how AI signals adapt to your style.</CardDescription>
+              <CardTitle>İşlem Tercihleri</CardTitle>
+              <CardDescription>YZ sinyallerinin stilinize göre uyarlanmasını yapılandırın.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Risk Level</Label>
-                  <p className="text-sm text-muted-foreground">Determines stop-loss tightness and signal filtering.</p>
+                  <Label>Risk Seviyesi</Label>
+                  <p className="text-sm text-muted-foreground">Zarar-kes sıkılığını ve sinyal filtrelemesini belirler.</p>
                 </div>
                 <Select defaultValue={user?.riskLevel || "MEDIUM"}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select risk" />
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Risk seçin" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="LOW">Low (Conservative)</SelectItem>
-                    <SelectItem value="MEDIUM">Medium (Balanced)</SelectItem>
-                    <SelectItem value="HIGH">High (Aggressive)</SelectItem>
+                    <SelectItem value="LOW">Düşük (Muhafazakâr)</SelectItem>
+                    <SelectItem value="MEDIUM">Orta (Dengeli)</SelectItem>
+                    <SelectItem value="HIGH">Yüksek (Agresif)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <Separator className="bg-border/50" />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Paper Trading Balance</Label>
-                  <p className="text-sm text-muted-foreground">Starting balance for simulation accounts.</p>
+                  <Label>Sanal İşlem Bakiyesi</Label>
+                  <p className="text-sm text-muted-foreground">Simülasyon hesabı için başlangıç bakiyesi.</p>
                 </div>
                 <div className="font-mono font-bold text-lg text-primary">
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(user?.paperBalance || 100000)}
+                  {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(user?.paperBalance || 100000)}
                 </div>
               </div>
             </CardContent>
@@ -77,28 +76,28 @@ export default function Settings() {
 
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>Manage your alerts.</CardDescription>
+              <CardTitle>Bildirimler</CardTitle>
+              <CardDescription>Uyarılarınızı yönetin.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Price Alerts</Label>
-                  <p className="text-sm text-muted-foreground">Receive alerts when targets are hit.</p>
+                  <Label>Fiyat Uyarıları</Label>
+                  <p className="text-sm text-muted-foreground">Hedef fiyatlara ulaşıldığında bildirim al.</p>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>AI Buy Signals</Label>
-                  <p className="text-sm text-muted-foreground">Instant notifications for STRONG BUY signals.</p>
+                  <Label>YZ Alım Sinyalleri</Label>
+                  <p className="text-sm text-muted-foreground">GÜÇLÜ AL sinyalleri için anlık bildirim.</p>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>News Impact</Label>
-                  <p className="text-sm text-muted-foreground">Alerts for extreme sentiment shifts.</p>
+                  <Label>Haber Etkisi</Label>
+                  <p className="text-sm text-muted-foreground">Aşırı duyarlılık değişikliklerinde uyarı.</p>
                 </div>
                 <Switch />
               </div>

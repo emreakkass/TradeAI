@@ -1,0 +1,22 @@
+Lütfen TradeAI projem üzerinde aşağıdaki UI/UX geliştirmelerini, fonksiyonel eksiklikleri ve dil güncellemelerini sırasıyla uygula:
+
+1. Navigasyon ve UI/UX Revizyonu (Üst Menü Tasarımı):
+- Mevcut sol taraftaki (sidebar) navigasyon menüsünü kaldır veya küçült. 
+- "AI Scanner", "Watchlist", "Portfolio", "News" ve "AI Assistant" sekmelerini sitenin üst tarafına şık, modern ve yapışkan (sticky) bir üst navigasyon barı (Navbar) olarak taşı.
+- Üst menüyü premium bir Web3/Fintech platformu estetiğine kavuştur (Tailwind CSS kullanarak modern hover efektleri, hafif neon yeşil/koyu gri kontrastları ekle).
+- Kullanıcı profili ve ayarlar/çıkış butonlarını sağ üst köşeye hizala.
+
+2. Watchlist (İzleme Listesi) Fonksiyonelliğinin Aktif Edilmesi:
+- Watchlist sekmesindeki "Add Symbol" butonunu tamamen işlevsel hale getir.
+- Bu butona tıklandığında ekrana şık bir Modal (açılır pencere) veya Dropdown açılmasını sağla.
+- Bu modal içinde kullanıcı popüler borsa sembollerini (Örn: BTC, ETH, AAPL, NVDA, TSLA, EUR/USD vb.) aratıp veya listeden seçip "Ekle" diyebilmeli.
+- Eklenen semboller anlık olarak Watchlist tablosuna dinamik fiyat, sinyal ve AI skoru verileriyle (mock veri olabilir) eklenmeli ve sayfayı yenileyince kaybolmaması için LocalStorage veya veritabanına kaydedilmeli.
+
+3. Dinamik ve Güncel Haber Akışı (News Section):
+- Haberler sekmesindeki (News) sabit ve eski tarihli (20 Mayıs gibi) statik verileri kaldır.
+- Kullanıcı siteye her girdiğinde veya Haberler sekmesine tıkladığında, haberlerin tarihini otomatik olarak "Bugünün Güncel Tarihi ve Saati" yapacak dinamik bir yapı kur.
+- Haber içeriklerinin ve piyasa duyarlılık analizlerinin (Sentiment) güncel piyasa trendlerine uygun şekilde dinamik olarak simüle edilmesini veya güncellenmesini sağla.
+
+4. %100 Türkçe Dil Desteği (Yalnızca "TradeAI" İsmi Hariç):
+- Sitenin ana ismi ve markası olan "TradeAI" kelimesini kesinlikle DEĞİŞTİRME, olduğu gibi bırak.
+- "TradeAI" ismi hariç, platformdaki tüm menüleri (Örn: Yapay Zeka Tarayıcı, İzleme Listesi, Portföy, Haberler, Panel vb.), buton metinlerini, ayarlar sayfasındaki açıklamaları, grafik etiketlerini, hata mesajlarını ve simüle edilen haber metinlerini akıcı, profesyonel bir finans/borsa Türkçesine çevir.
