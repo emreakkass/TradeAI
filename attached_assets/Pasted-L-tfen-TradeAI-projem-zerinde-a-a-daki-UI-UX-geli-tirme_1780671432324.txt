@@ -1,0 +1,19 @@
+Lütfen TradeAI projem üzerinde aşağıdaki UI/UX geliştirmelerini, filtreleme araçlarını ve haber yapısı güncellemelerini sırasıyla uygula:
+
+1. Haberler (News) Sekmesinin İkiye Ayrılması (BIST & Küresel):
+- Haberler sayfasının üst kısmına çok şık, modern iki sekmeli bir seçici (Tab UI) ekle: "Türk Borsası" ve "Yabancı Borsalar".
+- "Türk Borsası" seçildiğinde; Borsa İstanbul (BIST), KAP duyuruları ve Türkiye piyasalarına dair anlık simüle edilmiş finansal haberler ve piyasa duyarlılık analizi (Sentiment) listelensin.
+- "Yabancı Borsalar" seçildiğinde; Fed kararları, NASDAQ, NYSE, S&P 500 ve Kripto dünyasından güncel küresel finans haberleri listelensin.
+- Sitenin haberler kısmındaki tüm eski ve sabit tarihler (20 Mayıs vb.) kaldırılsın; kullanıcı siteye girdiğinde veya sekmeyi değiştirdiğinde haber tarihleri otomatik olarak "Bugünün Güncel Tarih ve Saati" olarak dinamik güncellensin.
+
+2. "Hisse Avcısı" Filtreleri ve Dashboard Kartları:
+- Ana Panele (Dashboard) "Günün En Çok Yükselenleri (Top Gainers)" ve "Hacim Kırılımı Yaşayanlar (Volume Spikes)" adında iki canlı liste kartı ekle.
+- Yapay Zeka Tarayıcı (AI Scanner) sekmesinin üstüne hızlı filtreleme butonları koy: "En Çok Kazandıranlar", "Hacim Patlaması" ve "AI Güçlü Al Sinyalleri". Kullanıcı bunlara tıkladığında altındaki tablo sadece ilgili kriterdeki hisseleri listelesin.
+- İzleme Listesi (Watchlist) ve Tarayıcı tablolarındaki her hissenin yanına, o hissenin günlük fiyat hareketini özetleyen çok şık, küçük çizgisel grafikler (Sparklines) ekle.
+
+3. Dil ve Navigasyon Düzeni:
+- Sitenin markası olan "TradeAI" ismi kesinlikle DEĞİŞTİRİLMESİN.
+- "TradeAI" hariç tüm platformu (Menüler, butonlar, grafik etiketleri, ayarlar ve simüle edilen haber içerikleri) son derece profesyonel bir finans Türkçesine çevir.
+- Sol menüyü kaldırıp tüm ana sekmeleri (Panel, Yapay Zeka Tarayıcı, İzleme Listesi, Portföy, Haberler, Yapay Zeka Asistanı) üst tarafa yapışkan (sticky) ve premium bir üst navigasyon barı (Navbar) olarak taşı.
+
+Tüm kodları mevcut koyu tema (dark theme) estetiğine, Tailwind CSS standartlarına ve modern Web3/Fintech görünümüne tamamen sadık kalarak, hatasız bir şekilde entegre et.

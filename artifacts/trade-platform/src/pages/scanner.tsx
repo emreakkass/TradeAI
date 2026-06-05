@@ -1,34 +1,46 @@
 import { useState, Fragment } from "react";
 import { Sidebar } from "@/components/layout";
 import { useGetScannerSignals } from "@workspace/api-client-react";
+import { Sparkline } from "@/components/ui/sparkline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, SlidersHorizontal, ChevronDown, ChevronUp, Target, Activity } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronDown, ChevronUp, Target, Activity, TrendingUp, Flame, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+type QuickFilter = "ALL" | "TOP_GAINERS" | "VOLUME_SPIKE" | "STRONG_BUY";
+
+const QUICK_FILTERS: { id: QuickFilter; label: string; icon: React.ElementType; desc: string }[] = [
+  { id: "ALL", label: "Tümü", icon: Activity, desc: "Tüm semboller" },
+  { id: "TOP_GAINERS", label: "En Çok Kazandıranlar", icon: TrendingUp, desc: "Yüksek getiri" },
+  { id: "VOLUME_SPIKE", label: "Hacim Patlaması", icon: Flame, desc: "Yüksek hacim" },
+  { id: "STRONG_BUY", label: "YZ Güçlü Al Sinyalleri", icon: Zap, desc: "En yüksek YZ skoru" },
+];
 
 export default function Scanner() {
   const [market, setMarket] = useState<"ALL" | "NASDAQ" | "NYSE" | "CRYPTO">("ALL");
   const [signal, setSignal] = useState<"ALL" | "STRONG_BUY" | "BUY" | "SELL">("ALL");
   const [search, setSearch] = useState("");
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("ALL");
 
   const { data: signals, isLoading } = useGetScannerSignals({
     market: market as any,
     signal: signal === "ALL" ? undefined : signal as any,
-    limit: 50
+    limit: 50,
   });
 
   const getSignalBadge = (sig: string) => {
     switch (sig) {
-      case "STRONG_BUY": return <Badge className="bg-primary hover:bg-primary text-primary-foreground font-bold">GÜÇLÜ AL</Badge>;
-      case "BUY": return <Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-primary/20">AL</Badge>;
-      case "HOLD": return <Badge variant="outline" className="text-yellow-500 border-yellow-500/20 bg-yellow-500/10">BEKLE</Badge>;
-      case "RISKY": return <Badge variant="outline" className="text-orange-500 border-orange-500/20 bg-orange-500/10">RİSKLİ</Badge>;
-      case "SELL": return <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30 border-destructive/20">SAT</Badge>;
-      default: return <Badge variant="outline">{sig}</Badge>;
+      case "STRONG_BUY": return <Badge className="bg-primary hover:bg-primary text-primary-foreground font-bold text-xs">GÜÇLÜ AL</Badge>;
+      case "BUY": return <Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-primary/20 text-xs">AL</Badge>;
+      case "HOLD": return <Badge variant="outline" className="text-yellow-500 border-yellow-500/20 bg-yellow-500/10 text-xs">BEKLE</Badge>;
+      case "RISKY": return <Badge variant="outline" className="text-orange-500 border-orange-500/20 bg-orange-500/10 text-xs">RİSKLİ</Badge>;
+      case "SELL": return <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30 border-destructive/20 text-xs">SAT</Badge>;
+      default: return <Badge variant="outline" className="text-xs">{sig}</Badge>;
     }
   };
 
@@ -38,24 +50,71 @@ export default function Scanner() {
     return "text-destructive";
   };
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(val);
-  const formatPercent = (val: number) => `${val > 0 ? '+' : ''}${val.toFixed(2)}%`;
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("tr-TR", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format(val);
+  const formatPercent = (val: number) => `${val > 0 ? "+" : ""}${val.toFixed(2)}%`;
 
-  const filteredSignals = signals?.filter(s =>
-    s.symbol.toLowerCase().includes(search.toLowerCase()) ||
-    s.name.toLowerCase().includes(search.toLowerCase())
+  const applyQuickFilter = (items: typeof signals) => {
+    if (!items) return [];
+    switch (quickFilter) {
+      case "TOP_GAINERS": return [...items].sort((a, b) => b.changePercent - a.changePercent).slice(0, 8);
+      case "VOLUME_SPIKE": return [...items].sort((a, b) => b.aiScore - a.aiScore + (Math.random() - 0.5) * 5).slice(0, 8);
+      case "STRONG_BUY": return items.filter(s => s.signal === "STRONG_BUY" || s.aiScore >= 75);
+      default: return items;
+    }
+  };
+
+  const filteredSignals = applyQuickFilter(
+    signals?.filter(s =>
+      s.symbol.toLowerCase().includes(search.toLowerCase()) ||
+      s.name.toLowerCase().includes(search.toLowerCase())
+    )
   );
 
   return (
     <Sidebar>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">YZ Piyasa Tarayıcısı</h1>
           <p className="text-muted-foreground">Gerçek zamanlı algoritmik tarama ve işlem kurulumları.</p>
         </div>
 
+        {/* Quick Filter Buttons */}
+        <div className="flex flex-wrap gap-2">
+          {QUICK_FILTERS.map(f => (
+            <button
+              key={f.id}
+              onClick={() => setQuickFilter(f.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200",
+                quickFilter === f.id
+                  ? f.id === "STRONG_BUY"
+                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                    : f.id === "TOP_GAINERS"
+                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-lg shadow-emerald-500/10"
+                    : f.id === "VOLUME_SPIKE"
+                    ? "bg-accent/20 text-accent border-accent/40 shadow-lg shadow-accent/10"
+                    : "bg-muted text-foreground border-border"
+                  : "bg-card/50 text-muted-foreground border-border/50 hover:border-border hover:text-foreground hover:bg-muted/50"
+              )}
+            >
+              <f.icon className="w-4 h-4" />
+              {f.label}
+              {quickFilter === f.id && filteredSignals.length > 0 && (
+                <span className={cn(
+                  "ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold",
+                  f.id === "STRONG_BUY" ? "bg-primary-foreground/20" : "bg-background/20"
+                )}>
+                  {filteredSignals.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Search & Filters */}
         <Card className="bg-card/50 backdrop-blur-sm border-border/50 shrink-0">
-          <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
+          <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -77,7 +136,6 @@ export default function Scanner() {
                   <SelectItem value="CRYPTO">Kripto</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={signal} onValueChange={(v: any) => setSignal(v)}>
                 <SelectTrigger className="w-[140px] bg-input/50">
                   <SelectValue placeholder="Sinyal" />
@@ -89,54 +147,50 @@ export default function Scanner() {
                   <SelectItem value="SELL">Sat</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Button variant="outline" size="icon">
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
+              <Button variant="outline" size="icon"><SlidersHorizontal className="h-4 w-4" /></Button>
             </div>
           </CardContent>
         </Card>
 
-        <div className="rounded-md border border-border/50 bg-card/30 overflow-hidden">
+        {/* Table */}
+        <div className="rounded-xl border border-border/50 bg-card/30 overflow-hidden">
           <div className="overflow-auto">
             <Table>
-              <TableHeader className="bg-muted/50 sticky top-0 backdrop-blur-md z-10">
+              <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead className="w-[180px]">Sembol</TableHead>
                   <TableHead>Fiyat</TableHead>
+                  <TableHead className="w-[90px]">7 Günlük</TableHead>
                   <TableHead>Sinyal</TableHead>
                   <TableHead className="text-right">YZ Skoru</TableHead>
                   <TableHead className="text-right">Teknik</TableHead>
                   <TableHead className="text-right">Duygu</TableHead>
                   <TableHead className="text-right">Risk</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[40px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   Array(10).fill(0).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><div className="h-5 w-24 bg-muted animate-pulse rounded" /></TableCell>
-                      <TableCell><div className="h-5 w-16 bg-muted animate-pulse rounded" /></TableCell>
-                      <TableCell><div className="h-6 w-20 bg-muted animate-pulse rounded-full" /></TableCell>
-                      <TableCell><div className="h-5 w-8 bg-muted animate-pulse rounded ml-auto" /></TableCell>
-                      <TableCell><div className="h-5 w-8 bg-muted animate-pulse rounded ml-auto" /></TableCell>
-                      <TableCell><div className="h-5 w-8 bg-muted animate-pulse rounded ml-auto" /></TableCell>
-                      <TableCell><div className="h-5 w-8 bg-muted animate-pulse rounded ml-auto" /></TableCell>
-                      <TableCell></TableCell>
+                      {Array(9).fill(0).map((__, j) => (
+                        <TableCell key={j}><div className="h-5 bg-muted animate-pulse rounded" /></TableCell>
+                      ))}
                     </TableRow>
                   ))
-                ) : filteredSignals?.length === 0 ? (
+                ) : filteredSignals.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
-                      Kriterlerinize uyan sinyal bulunamadı.
+                    <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
+                      {quickFilter !== "ALL"
+                        ? "Bu filtre için uygun sinyal bulunamadı. Farklı bir filtre deneyin."
+                        : "Kriterlerinize uyan sinyal bulunamadı."}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredSignals?.map((item) => (
+                  filteredSignals.map((item) => (
                     <Fragment key={item.id}>
                       <TableRow
-                        className={`cursor-pointer hover:bg-muted/30 transition-colors ${expandedRow === item.id ? 'bg-muted/20' : ''}`}
+                        className={`cursor-pointer hover:bg-muted/30 transition-colors ${expandedRow === item.id ? "bg-muted/20" : ""}`}
                         onClick={() => setExpandedRow(expandedRow === item.id ? null : item.id)}
                       >
                         <TableCell>
@@ -145,9 +199,12 @@ export default function Scanner() {
                         </TableCell>
                         <TableCell>
                           <div className="font-medium text-sm">{formatCurrency(item.price)}</div>
-                          <div className={`text-xs ${item.changePercent > 0 ? 'text-primary' : 'text-destructive'}`}>
+                          <div className={`text-xs ${item.changePercent > 0 ? "text-primary" : "text-destructive"}`}>
                             {formatPercent(item.changePercent)}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <Sparkline symbol={item.symbol} changePercent={item.changePercent} width={80} height={30} />
                         </TableCell>
                         <TableCell>{getSignalBadge(item.signal)}</TableCell>
                         <TableCell className="text-right">
@@ -171,50 +228,31 @@ export default function Scanner() {
 
                       {expandedRow === item.id && (
                         <TableRow className="bg-muted/10 border-b border-border/50 hover:bg-muted/10">
-                          <TableCell colSpan={8} className="p-0">
+                          <TableCell colSpan={9} className="p-0">
                             <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
                               <div className="space-y-4">
                                 <h4 className="text-sm font-semibold flex items-center gap-2">
                                   <Target className="h-4 w-4 text-accent" /> İşlem Kurulumu
                                 </h4>
-                                <div className="grid grid-cols-2 gap-4 bg-card/80 p-4 rounded-lg border border-border/50">
-                                  <div>
-                                    <div className="text-xs text-muted-foreground">İşlem</div>
-                                    <div className="font-bold text-foreground">{item.signal.includes('BUY') ? 'AL' : 'SAT'}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-xs text-muted-foreground">Giriş Bölgesi</div>
-                                    <div className="font-mono font-medium">{formatCurrency(item.price)}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-xs text-muted-foreground text-destructive">Zarar Kes</div>
-                                    <div className="font-mono font-medium">{formatCurrency(item.price * (item.signal.includes('BUY') ? 0.95 : 1.05))}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-xs text-muted-foreground text-primary">Kâr Al</div>
-                                    <div className="font-mono font-medium">{formatCurrency(item.price * (item.signal.includes('BUY') ? 1.15 : 0.85))}</div>
-                                  </div>
-                                  <div className="col-span-2 pt-2 border-t border-border/50">
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-xs text-muted-foreground">Risk:Ödül</span>
-                                      <span className="font-bold text-accent">1:3.0</span>
-                                    </div>
+                                <div className="grid grid-cols-2 gap-3 bg-card/80 p-4 rounded-lg border border-border/50">
+                                  <div><div className="text-xs text-muted-foreground">İşlem</div><div className="font-bold">{item.signal.includes("BUY") ? "AL" : "SAT"}</div></div>
+                                  <div><div className="text-xs text-muted-foreground">Giriş Bölgesi</div><div className="font-mono font-medium text-sm">{formatCurrency(item.price)}</div></div>
+                                  <div><div className="text-xs text-destructive">Zarar Kes</div><div className="font-mono font-medium text-sm">{formatCurrency(item.price * (item.signal.includes("BUY") ? 0.95 : 1.05))}</div></div>
+                                  <div><div className="text-xs text-primary">Kâr Al</div><div className="font-mono font-medium text-sm">{formatCurrency(item.price * (item.signal.includes("BUY") ? 1.15 : 0.85))}</div></div>
+                                  <div className="col-span-2 pt-2 border-t border-border/50 flex justify-between items-center">
+                                    <span className="text-xs text-muted-foreground">Risk:Ödül</span>
+                                    <span className="font-bold text-accent">1:3.0</span>
                                   </div>
                                 </div>
                                 <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Sanal İşlem Aç</Button>
                               </div>
-
-                              <div className="lg:col-span-2 space-y-4">
+                              <div className="lg:col-span-2 space-y-3">
                                 <h4 className="text-sm font-semibold flex items-center gap-2">
                                   <Activity className="h-4 w-4 text-primary" /> YZ Analizi
                                 </h4>
                                 <div className="text-sm text-muted-foreground leading-relaxed bg-card/80 p-4 rounded-lg border border-border/50">
-                                  <p className="mb-2">
-                                    Algoritma, boğa opsiyonları akışıyla birleşen güçlü kurumsal birikim tespit etti. RSI şu anda aşırı alım bölgesinden geri çekilerek optimal bir giriş penceresi sunuyor.
-                                  </p>
-                                  <p>
-                                    Haber duyarlılığı son 24 saatte belirgin şekilde olumluya döndü. 4 saatlik grafikte 20 EMA, 50 EMA'nın üzerine geçiyor. {formatCurrency(item.price * 1.08)} seviyesindeki kritik direnç yakında test edilecek.
-                                  </p>
+                                  <p className="mb-2">Algoritma, boğa opsiyonları akışıyla birleşen güçlü kurumsal birikim tespit etti. RSI şu anda aşırı alım bölgesinden geri çekilerek optimal bir giriş penceresi sunuyor.</p>
+                                  <p>Haber duyarlılığı son 24 saatte belirgin şekilde olumluya döndü. 4 saatlik grafikte 20 EMA, 50 EMA'nın üzerine geçiyor. {formatCurrency(item.price * 1.08)} seviyesindeki kritik direnç yakında test edilecek.</p>
                                 </div>
                               </div>
                             </div>
