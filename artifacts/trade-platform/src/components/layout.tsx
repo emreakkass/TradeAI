@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useGetNotifications, useMarkAllNotificationsRead } from "@workspace/api-client-react";
 import {
   LayoutDashboard,
   Activity,
@@ -10,7 +11,12 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  User,
+  Bell,
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  Zap,
+  CheckCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +28,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { useQueryClient } from "@tanstack/react-query";
 
 const navItems = [
   { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
@@ -32,9 +41,42 @@ const navItems = [
   { href: "/chat", label: "YZ Asistan", icon: MessageSquare },
 ];
 
+function NotificationIcon({ type }: { type: string }) {
+  switch (type) {
+    case "BUY_SIGNAL": return <TrendingUp className="w-4 h-4 text-primary" />;
+    case "SELL_SIGNAL": return <TrendingDown className="w-4 h-4 text-destructive" />;
+    case "PRICE_ALERT": return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+    case "BREAKOUT": return <Zap className="w-4 h-4 text-accent" />;
+    default: return <Bell className="w-4 h-4 text-muted-foreground" />;
+  }
+}
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "az önce";
+  if (m < 60) return `${m} dk`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} sa`;
+  return `${Math.floor(h / 24)} g`;
+}
+
 export function Sidebar({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
+  const { data: notifications } = useGetNotifications({ unreadOnly: false as any });
+  const markAllRead = useMarkAllNotificationsRead();
+
+  const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
+
+  const handleMarkAllRead = () => {
+    markAllRead.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col h-screen w-full bg-background overflow-hidden">
@@ -77,8 +119,76 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          {/* Right: User Profile */}
-          <div className="flex items-center gap-2">
+          {/* Right: Notifications + User Profile */}
+          <div className="flex items-center gap-1">
+            {/* Notification Bell */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 bg-card border-border/50 p-0" sideOffset={4}>
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+                  <div className="font-semibold text-sm">Bildirimler</div>
+                  {unreadCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
+                      onClick={handleMarkAllRead}
+                    >
+                      <CheckCheck className="w-3 h-3" />
+                      Tümünü Okundu İşaretle
+                    </Button>
+                  )}
+                </div>
+                <ScrollArea className="max-h-[360px]">
+                  {!notifications || notifications.length === 0 ? (
+                    <div className="py-8 text-center text-sm text-muted-foreground">
+                      Bildirim bulunmuyor.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border/30">
+                      {notifications.slice(0, 10).map((n) => (
+                        <div
+                          key={n.id}
+                          className={cn(
+                            "flex gap-3 px-4 py-3 hover:bg-muted/30 transition-colors",
+                            !n.isRead && "bg-primary/5"
+                          )}
+                        >
+                          <div className="mt-0.5 shrink-0">
+                            <NotificationIcon type={n.type} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={cn("text-xs font-medium leading-snug", !n.isRead && "text-foreground")}>{n.title}</p>
+                              <span className="text-[10px] text-muted-foreground shrink-0">{relativeTime(n.createdAt)}</span>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug line-clamp-2">{n.message}</p>
+                          </div>
+                          {!n.isRead && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* User Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
