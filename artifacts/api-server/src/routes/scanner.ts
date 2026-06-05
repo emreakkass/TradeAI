@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, aiSignalsTable } from "@workspace/db";
-import { eq, gte, desc, and, inArray } from "drizzle-orm";
+import { eq, gte, desc, and } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middlewares/auth.js";
 import {
   SYMBOLS, getLivePrice, generateTechnicals, computeSignal, computeScores, generateTradeSignal
@@ -9,17 +9,24 @@ import { AnalyzeSymbolBody } from "@workspace/api-zod";
 
 const router = Router();
 
-async function ensureSignals() {
-  const existing = await db.select().from(aiSignalsTable).limit(1);
-  if (existing.length > 0) return;
+// Track which symbols have been seeded so we auto-add new ones without full re-seed
+const seededSymbols = new Set<string>();
 
+async function ensureSignals() {
   for (const sym of SYMBOLS) {
+    if (seededSymbols.has(sym.symbol)) continue;
+    const existing = await db.select().from(aiSignalsTable).where(eq(aiSignalsTable.symbol, sym.symbol)).limit(1);
+    if (existing.length > 0) { seededSymbols.add(sym.symbol); continue; }
+
     const { price, change, changePercent } = getLivePrice(sym);
-    const tech = generateTechnicals(price, sym.market);
+    const tech = generateTechnicals(price, sym.market, sym.smallCap);
     const signal = computeSignal(tech.rsi, tech.macd, price, tech.ema20);
     const scores = computeScores(tech.rsi, tech.macd, signal, changePercent);
     const tradeSignal = generateTradeSignal(signal, price);
-    const analysis = `${sym.name} showing ${signal.replace("_", " ")} signal. RSI at ${tech.rsi.toFixed(1)}, ${tech.macd > 0 ? "MACD bullish" : "MACD bearish"}. Key support at ${tech.support.toFixed(2)}, resistance at ${tech.resistance.toFixed(2)}.`;
+
+    const currency = sym.market === "BIST" ? "₺" : sym.market === "FOREX" ? "" : "$";
+    const scTag = sym.smallCap ? " [Yan Tahta/Small-Cap]" : "";
+    const analysis = `${sym.name}${scTag} için ${signal.replace("_", " ")} sinyali tespit edildi. RSI ${tech.rsi.toFixed(1)}, ${tech.macd > 0 ? "MACD yükseliş" : "MACD düşüş"} bölgesinde. Destek: ${currency}${tech.support.toFixed(2)}, Direnç: ${currency}${tech.resistance.toFixed(2)}.${sym.smallCap ? " Yüksek volatilite: tavan/taban seri hareketi riski mevcut." : ""}`;
 
     await db.insert(aiSignalsTable).values({
       symbol: sym.symbol,
@@ -36,7 +43,7 @@ async function ensureSignals() {
       riskScore: scores.riskScore,
       momentumScore: scores.momentumScore,
       volume: tech.volume.toString(),
-      marketCap: sym.market !== "FOREX" ? (price * Math.random() * 1e9).toFixed(0) : null,
+      marketCap: sym.market !== "FOREX" ? (price * Math.random() * (sym.smallCap ? 1e8 : 1e9)).toFixed(0) : null,
       analysis,
       entryPrice: tradeSignal.entry.toString(),
       stopLoss: tradeSignal.stopLoss.toString(),
@@ -52,6 +59,7 @@ async function ensureSignals() {
       support: tech.support.toString(),
       resistance: tech.resistance.toString(),
     });
+    seededSymbols.add(sym.symbol);
   }
 }
 
@@ -84,11 +92,11 @@ router.post("/scanner/analyze", requireAuth, async (req, res) => {
     symbol: symbol.toUpperCase(), name: symbol.toUpperCase(), market: market as any, basePrice: 100, sector: "Other"
   };
   const { price, change, changePercent } = getLivePrice(sym as any);
-  const tech = generateTechnicals(price, market);
+  const tech = generateTechnicals(price, market, (sym as any).smallCap);
   const signal = computeSignal(tech.rsi, tech.macd, price, tech.ema20);
   const scores = computeScores(tech.rsi, tech.macd, signal, changePercent);
   const tradeSignal = generateTradeSignal(signal, price);
-  const analysis = `AI analysis for ${sym.symbol}: ${signal.replace("_", " ")} signal detected. RSI=${tech.rsi.toFixed(1)}, MACD=${tech.macd > 0 ? "bullish" : "bearish"}, price ${price > tech.ema20 ? "above" : "below"} EMA20. Entry at ${price.toFixed(2)}, Stop Loss ${tradeSignal.stopLoss.toFixed(2)}, Target ${tradeSignal.takeProfit.toFixed(2)}. Risk/Reward: ${tradeSignal.riskReward}.`;
+  const analysis = `YZ Analizi — ${sym.symbol}: ${signal.replace("_", " ")} sinyali. RSI=${tech.rsi.toFixed(1)}, MACD=${tech.macd > 0 ? "yükseliş" : "düşüş"}, fiyat EMA20 ${price > tech.ema20 ? "üzerinde" : "altında"}. Giriş: ${price.toFixed(2)}, Zarar Kes: ${tradeSignal.stopLoss.toFixed(2)}, Hedef: ${tradeSignal.takeProfit.toFixed(2)}. Risk/Ödül: ${tradeSignal.riskReward}.`;
 
   const [existing] = await db.select().from(aiSignalsTable).where(eq(aiSignalsTable.symbol, sym.symbol)).limit(1);
 
@@ -118,6 +126,7 @@ router.post("/scanner/analyze", requireAuth, async (req, res) => {
 });
 
 function formatSignal(s: any) {
+  const sym = SYMBOLS.find(ss => ss.symbol === s.symbol);
   return {
     id: s.id, symbol: s.symbol, name: s.name, market: s.market,
     price: Number(s.price), change: Number(s.change), changePercent: Number(s.changePercent),
@@ -125,6 +134,7 @@ function formatSignal(s: any) {
     sentimentScore: s.sentimentScore, newsScore: s.newsScore, riskScore: s.riskScore,
     momentumScore: s.momentumScore, volume: Number(s.volume),
     marketCap: s.marketCap ? Number(s.marketCap) : null,
+    smallCap: sym?.smallCap || false,
     updatedAt: s.updatedAt.toISOString(),
   };
 }

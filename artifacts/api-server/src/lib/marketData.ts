@@ -7,9 +7,11 @@ export interface SymbolData {
   market: "NASDAQ" | "NYSE" | "BIST" | "CRYPTO" | "FOREX";
   basePrice: number;
   sector: string;
+  smallCap?: boolean;
 }
 
 export const SYMBOLS: SymbolData[] = [
+  // NASDAQ Large-Cap
   { symbol: "NVDA", name: "NVIDIA Corporation", market: "NASDAQ", basePrice: 875.4, sector: "Technology" },
   { symbol: "AAPL", name: "Apple Inc.", market: "NASDAQ", basePrice: 189.5, sector: "Technology" },
   { symbol: "MSFT", name: "Microsoft Corporation", market: "NASDAQ", basePrice: 415.2, sector: "Technology" },
@@ -20,18 +22,54 @@ export const SYMBOLS: SymbolData[] = [
   { symbol: "AMD", name: "Advanced Micro Devices", market: "NASDAQ", basePrice: 154.6, sector: "Technology" },
   { symbol: "INTC", name: "Intel Corporation", market: "NASDAQ", basePrice: 31.2, sector: "Technology" },
   { symbol: "NFLX", name: "Netflix Inc.", market: "NASDAQ", basePrice: 642.1, sector: "Communication Services" },
+
+  // NYSE Large-Cap
   { symbol: "JPM", name: "JPMorgan Chase & Co.", market: "NYSE", basePrice: 198.4, sector: "Financials" },
   { symbol: "BAC", name: "Bank of America Corp.", market: "NYSE", basePrice: 38.7, sector: "Financials" },
   { symbol: "GS", name: "Goldman Sachs Group", market: "NYSE", basePrice: 468.2, sector: "Financials" },
   { symbol: "XOM", name: "Exxon Mobil Corporation", market: "NYSE", basePrice: 112.3, sector: "Energy" },
+
+  // CRYPTO - Major
   { symbol: "BTC", name: "Bitcoin", market: "CRYPTO", basePrice: 67450.0, sector: "Crypto" },
   { symbol: "ETH", name: "Ethereum", market: "CRYPTO", basePrice: 3580.0, sector: "Crypto" },
   { symbol: "SOL", name: "Solana", market: "CRYPTO", basePrice: 145.2, sector: "Crypto" },
   { symbol: "BNB", name: "Binance Coin", market: "CRYPTO", basePrice: 412.5, sector: "Crypto" },
+  { symbol: "AVAX", name: "Avalanche", market: "CRYPTO", basePrice: 36.8, sector: "Crypto" },
+  { symbol: "LINK", name: "Chainlink", market: "CRYPTO", basePrice: 14.6, sector: "Crypto" },
+
+  // CRYPTO - Altcoin/Meme (Small-Cap, high volatility)
+  { symbol: "DOGE", name: "Dogecoin", market: "CRYPTO", basePrice: 0.148, sector: "Meme Token", smallCap: true },
+  { symbol: "PEPE", name: "Pepe Coin", market: "CRYPTO", basePrice: 0.0000128, sector: "Meme Token", smallCap: true },
+  { symbol: "SHIB", name: "Shiba Inu", market: "CRYPTO", basePrice: 0.0000248, sector: "Meme Token", smallCap: true },
+  { symbol: "ARB", name: "Arbitrum", market: "CRYPTO", basePrice: 0.82, sector: "DeFi", smallCap: true },
+  { symbol: "MATIC", name: "Polygon", market: "CRYPTO", basePrice: 0.58, sector: "DeFi", smallCap: true },
+
+  // BIST Large-Cap
   { symbol: "THYAO", name: "Türk Hava Yolları", market: "BIST", basePrice: 284.5, sector: "Airlines" },
   { symbol: "GARAN", name: "Garanti Bankası", market: "BIST", basePrice: 123.8, sector: "Financials" },
+  { symbol: "AKBNK", name: "Akbank", market: "BIST", basePrice: 58.4, sector: "Financials" },
+  { symbol: "ISCTR", name: "İş Bankası", market: "BIST", basePrice: 14.2, sector: "Financials" },
+  { symbol: "EREGL", name: "Ereğli Demir Çelik", market: "BIST", basePrice: 42.1, sector: "Materials" },
+  { symbol: "ASELS", name: "Aselsan", market: "BIST", basePrice: 88.6, sector: "Defense" },
+  { symbol: "KCHOL", name: "Koç Holding", market: "BIST", basePrice: 172.4, sector: "Conglomerates" },
+  { symbol: "KOZAL", name: "Koza Altın", market: "BIST", basePrice: 214.0, sector: "Mining" },
+  { symbol: "ENKAI", name: "Enka İnşaat", market: "BIST", basePrice: 48.9, sector: "Construction" },
+  { symbol: "PETKM", name: "Petkim", market: "BIST", basePrice: 18.6, sector: "Chemicals" },
+
+  // BIST Small-Cap / Yan Tahtalar (Yüksek Volatilite)
+  { symbol: "KONTR", name: "Kontrolmatik Teknoloji", market: "BIST", basePrice: 14.8, sector: "Technology", smallCap: true },
+  { symbol: "MIATK", name: "Mi Teknoloji", market: "BIST", basePrice: 8.2, sector: "Technology", smallCap: true },
+  { symbol: "BRSAN", name: "Borusan Mannesmann", market: "BIST", basePrice: 156.4, sector: "Materials", smallCap: true },
+  { symbol: "YEOTK", name: "Yeşil Elektrik Üretim", market: "BIST", basePrice: 22.6, sector: "Energy", smallCap: true },
+  { symbol: "SMRTG", name: "Smartiks Yazılım", market: "BIST", basePrice: 11.4, sector: "Technology", smallCap: true },
+  { symbol: "ASTOR", name: "Astor Enerji", market: "BIST", basePrice: 45.8, sector: "Energy", smallCap: true },
+  { symbol: "KLGYO", name: "Kılıç GYO", market: "BIST", basePrice: 38.2, sector: "Real Estate", smallCap: true },
+  { symbol: "SASA", name: "SASA Polyester", market: "BIST", basePrice: 94.6, sector: "Chemicals", smallCap: true },
+
+  // FOREX
   { symbol: "EURUSD", name: "EUR/USD", market: "FOREX", basePrice: 1.0845, sector: "Forex" },
   { symbol: "GBPUSD", name: "GBP/USD", market: "FOREX", basePrice: 1.2734, sector: "Forex" },
+  { symbol: "USDJPY", name: "USD/JPY", market: "FOREX", basePrice: 151.42, sector: "Forex" },
 ];
 
 function randomBetween(min: number, max: number): number {
@@ -43,25 +81,27 @@ function round(n: number, d = 4): number {
 }
 
 export function getLivePrice(sym: SymbolData): { price: number; change: number; changePercent: number } {
-  const volatility = sym.market === "CRYPTO" ? 0.05 : sym.market === "FOREX" ? 0.003 : 0.025;
+  // Small-caps are 3-4x more volatile (Tavan/Taban potansiyeli)
+  const baseVol = sym.market === "CRYPTO" ? 0.06 : sym.market === "FOREX" ? 0.003 : 0.025;
+  const volatility = sym.smallCap ? baseVol * 3.5 : baseVol;
   const changePercent = round(randomBetween(-volatility * 100, volatility * 100), 4);
-  const price = round(sym.basePrice * (1 + changePercent / 100), 4);
-  const change = round(price - sym.basePrice, 4);
+  const price = round(sym.basePrice * (1 + changePercent / 100), sym.basePrice < 1 ? 8 : 4);
+  const change = round(price - sym.basePrice, sym.basePrice < 1 ? 8 : 4);
   return { price, change, changePercent };
 }
 
-export function generateTechnicals(price: number, market: string) {
-  const rsi = round(randomBetween(25, 75), 2);
+export function generateTechnicals(price: number, market: string, smallCap = false) {
+  const rsi = round(randomBetween(smallCap ? 15 : 25, smallCap ? 85 : 75), 2);
   const ema20 = round(price * randomBetween(0.97, 1.03), 4);
   const ema50 = round(price * randomBetween(0.94, 1.06), 4);
   const sma200 = round(price * randomBetween(0.88, 1.12), 4);
-  const bbWidth = market === "CRYPTO" ? 0.08 : 0.04;
+  const bbWidth = market === "CRYPTO" ? 0.08 : smallCap ? 0.12 : 0.04;
   const bollingerUpper = round(price * (1 + bbWidth), 4);
   const bollingerLower = round(price * (1 - bbWidth), 4);
-  const macd = round(randomBetween(-5, 5), 6);
+  const macd = round(randomBetween(smallCap ? -8 : -5, smallCap ? 8 : 5), 6);
   const support = round(price * randomBetween(0.92, 0.98), 4);
   const resistance = round(price * randomBetween(1.02, 1.08), 4);
-  const volume = round(randomBetween(1_000_000, 50_000_000), 0);
+  const volume = round(randomBetween(smallCap ? 500_000 : 1_000_000, smallCap ? 20_000_000 : 50_000_000), 0);
   return { rsi, ema20, ema50, sma200, bollingerUpper, bollingerLower, macd, support, resistance, volume };
 }
 
@@ -102,14 +142,7 @@ const NEWS_HEADLINES = [
   { title: "NVIDIA Reports Record AI Chip Demand in Q4 Earnings", source: "Reuters", sentiment: "POSITIVE" as const, score: 0.89 },
   { title: "Tech Stocks Rally as AI Spending Surges", source: "Yahoo Finance", sentiment: "POSITIVE" as const, score: 0.78 },
   { title: "Bitcoin Surges Past Key Resistance Level", source: "CoinDesk", sentiment: "POSITIVE" as const, score: 0.82 },
-  { title: "Apple Unveils Next-Gen AI Features at WWDC", source: "Bloomberg", sentiment: "POSITIVE" as const, score: 0.75 },
   { title: "Market Volatility Spikes Amid Geopolitical Tensions", source: "Reuters", sentiment: "NEGATIVE" as const, score: -0.65 },
-  { title: "Fed Minutes Hint at Prolonged Higher Rates", source: "Bloomberg", sentiment: "NEGATIVE" as const, score: -0.58 },
-  { title: "Tesla Faces Margin Pressure from EV Price Wars", source: "Investing.com", sentiment: "NEGATIVE" as const, score: -0.61 },
-  { title: "Crypto Markets Slide on Regulatory Uncertainty", source: "CoinDesk", sentiment: "NEGATIVE" as const, score: -0.7 },
-  { title: "Meta Maintains Steady Growth Despite Ad Slowdown", source: "Yahoo Finance", sentiment: "NEUTRAL" as const, score: 0.1 },
-  { title: "Amazon AWS Revenue Growth Meets Expectations", source: "Reuters", sentiment: "NEUTRAL" as const, score: 0.15 },
-  { title: "Global Markets Mixed Ahead of Jobs Report", source: "Bloomberg", sentiment: "NEUTRAL" as const, score: 0.05 },
 ];
 
 export { NEWS_HEADLINES };

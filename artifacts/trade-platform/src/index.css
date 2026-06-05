@@ -338,3 +338,13 @@
     inset: -1px;
   }
 }
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+.animate-ticker-scroll {
+  animation: ticker-scroll linear infinite;
+  will-change: transform;
+}
